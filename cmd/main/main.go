@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,5 +17,7 @@ func main() {
 	routes.RegisterBookStoreRoutes(r)
 
 	fmt.Printf("App is running on %s \n", PORT)
-	http.ListenAndServe(PORT, r)
+	if err := http.ListenAndServe(PORT, r); err != nil {
+		log.Fatal(err)
+	}
 }
