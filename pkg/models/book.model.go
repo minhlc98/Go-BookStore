@@ -20,11 +20,25 @@ func init() {
 	db.AutoMigrate(&Book{})
 }
 
-func (b *Book) CreateBook() (*Book, error) {
-	if err := db.Create(b).Error; err != nil {
-		return nil, err
+func (book *Book) Create() error {
+	if err := db.Create(book).Error; err != nil {
+		return err
 	}
-	return b, nil
+	return nil
+}
+
+func (book *Book) Update() (error) {
+	if err := db.Save(book).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (book *Book) Delete() error {
+	if err := db.Delete(book).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetAllBooks() []Book {
@@ -33,19 +47,10 @@ func GetAllBooks() []Book {
 	return books
 }
 
-func GetBookById(id int64) Book {
+func GetBookById(id int) (*Book, error) {
 	var book Book
-	db.Where("id = ?", id).First(&book)
-	return book
-}
-
-func DeleteBookById(id int64) bool {
-	var book Book
-	db.Where("id=?", id).Delete(&book)
-	return true
-}
-
-func UpdateById(id int64, book *Book) *Book {
-	db.Save(book)
-	return book
+	if err := db.Where("id = ?", id).First(&book).Error; err != nil {
+		return nil, err
+	}
+	return &book, nil
 }
