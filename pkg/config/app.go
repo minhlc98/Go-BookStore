@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -12,9 +14,11 @@ func ConnectDB() {
 		return
 	}
 
-	dsn := "host=localhost user=admin password=admin dbname=gorm port=5432 sslmode=disable TimeZone=UTC"
+	d, err := gorm.Open(postgres.New(postgres.Config{
+		DSN: os.Getenv("DATABASE_URL"),
+		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	}), &gorm.Config{})
 
-	d, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
