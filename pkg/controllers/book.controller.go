@@ -4,33 +4,37 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/minhlc98/bookstore/pkg/models"
+	"github.com/minhlc98/bookstore/pkg/repo"
 	"github.com/minhlc98/bookstore/pkg/utils"
 	"gorm.io/gorm"
 )
 
-func CreateBook(w http.ResponseWriter, r *http.Request) {
+type BookController struct {
+	repo *repo.BookRepo
+}
+
+func NewBookController(r *repo.BookRepo) *BookController {
+	return &BookController{repo: r}
+}
+
+func (c *BookController) CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var book models.Book
 	utils.ParseBody(r, &book)
-	if err := book.Create(); err != nil {
+	if err := c.repo.Create(&book); err != nil {
 		panic(err)
 	}
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(book)
 }
 
-func GetBook(w http.ResponseWriter, r *http.Request) {
+func (c *BookController) GetBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		panic(err)
-	}
-	book, err := models.GetBookById(id)
+	book, err := c.repo.GetByID(vars["id"])
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Book Not Found", http.StatusNotFound)
@@ -41,20 +45,19 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-func GetAllBooks(w http.ResponseWriter, r *http.Request) {
+func (c *BookController) GetAllBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	books := models.GetAllBooks()
-	json.NewEncoder(w).Encode(books)
-}
-
-func DeleteBookById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
+	books, err := c.repo.List()
 	if err != nil {
 		panic(err)
 	}
-	book, errGetBook := models.GetBookById(id)
+	json.NewEncoder(w).Encode(books)
+}
+
+func (c *BookController) DeleteBookById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	book, errGetBook := c.repo.GetByID(vars["id"])
 	if errGetBook != nil {
 		if errors.Is(errGetBook, gorm.ErrRecordNotFound) {
 			http.Error(w, "Book Not Found", http.StatusNotFound)
@@ -62,7 +65,7 @@ func DeleteBookById(w http.ResponseWriter, r *http.Request) {
 		}
 		panic(errGetBook)
 	}
-	errDeleteBook := book.Delete()
+	errDeleteBook := c.repo.Delete(book)
 	if errDeleteBook != nil {
 		if errors.Is(errDeleteBook, gorm.ErrRecordNotFound) {
 			http.Error(w, "Book Not Found", http.StatusNotFound)
@@ -73,16 +76,12 @@ func DeleteBookById(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-func UpdateById(w http.ResponseWriter, r *http.Request) {
+func (c *BookController) UpdateById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	var book models.Book
 	utils.ParseBody(r, &book)
 	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		panic(err)
-	}
-	bookDetail, err := models.GetBookById(id)
+	bookDetail, err := c.repo.GetByID(vars["id"])
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Book Not Found", http.StatusNotFound)
@@ -90,11 +89,11 @@ func UpdateById(w http.ResponseWriter, r *http.Request) {
 		}
 		panic(err)
 	}
-	bookDetail.Author = book.Author
+	bookDetail.AuthorId = book.AuthorId
 	bookDetail.Name = book.Name
 	bookDetail.Publication = book.Publication
 
-	if errUpdate := bookDetail.Update(); errUpdate != nil {
+	if errUpdate := c.repo.Update(bookDetail); errUpdate != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Book Not Found", http.StatusNotFound)
 			return
