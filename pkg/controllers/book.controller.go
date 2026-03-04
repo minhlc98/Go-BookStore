@@ -21,18 +21,17 @@ func NewBookController(r *repo.BookRepo) *BookController {
 }
 
 func (c *BookController) CreateBook(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	var book models.Book
 	utils.ParseBody(r, &book)
 	if err := c.repo.Create(&book); err != nil {
 		panic(err)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(book)
 }
 
 func (c *BookController) GetBook(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
 	vars := mux.Vars(r)
 	book, err := c.repo.GetByID(vars["id"])
 	if err != nil {
@@ -42,20 +41,20 @@ func (c *BookController) GetBook(w http.ResponseWriter, r *http.Request) {
 		}
 		panic(err)
 	}
+	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(book)
 }
 
 func (c *BookController) GetAllBooks(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	books, err := c.repo.List()
 	if err != nil {
 		panic(err)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(books)
 }
 
 func (c *BookController) DeleteBookById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	book, errGetBook := c.repo.GetByID(vars["id"])
 	if errGetBook != nil {
@@ -73,11 +72,11 @@ func (c *BookController) DeleteBookById(w http.ResponseWriter, r *http.Request) 
 		}
 		panic(errDeleteBook)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(book)
 }
 
 func (c *BookController) UpdateById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
 	var book models.Book
 	utils.ParseBody(r, &book)
 	vars := mux.Vars(r)
@@ -100,5 +99,6 @@ func (c *BookController) UpdateById(w http.ResponseWriter, r *http.Request) {
 		}
 		panic(errUpdate)
 	}
+	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(bookDetail)
 }

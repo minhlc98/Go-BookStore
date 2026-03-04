@@ -21,18 +21,17 @@ func NewAuthorController(r *repo.AuthorRepo) *AuthorController {
 }
 
 func (c *AuthorController) CreateAuthor(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	var author models.Author
 	utils.ParseBody(r, &author)
 	if err := c.repo.Create(&author); err != nil {
 		panic(err)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(author)
 }
 
 func (c *AuthorController) GetAuthor(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
 	vars := mux.Vars(r)
 	author, err := c.repo.GetByID(vars["id"])
 	if err != nil {
@@ -42,20 +41,20 @@ func (c *AuthorController) GetAuthor(w http.ResponseWriter, r *http.Request) {
 		}
 		panic(err)
 	}
+	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(author)
 }
 
 func (c *AuthorController) GetAllAuthor(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	authors, err := c.repo.List()
 	if err != nil {
 		panic(err)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(authors)
 }
 
 func (c *AuthorController) DeleteAuthorById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	author, errGetAuthor := c.repo.GetByID(vars["id"])
 	if errGetAuthor != nil {
@@ -73,11 +72,11 @@ func (c *AuthorController) DeleteAuthorById(w http.ResponseWriter, r *http.Reque
 		}
 		panic(errDeleteAuthor)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(author)
 }
 
 func (c *AuthorController) UpdateAuthorById(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("content-type", "application/json")
 	var author models.Author
 	utils.ParseBody(r, &author)
 	vars := mux.Vars(r)
@@ -99,5 +98,6 @@ func (c *AuthorController) UpdateAuthorById(w http.ResponseWriter, r *http.Reque
 		}
 		panic(errUpdate)
 	}
+	w.Header().Set("content-type", "application/json")
 	json.NewEncoder(w).Encode(authorDetail)
 }
