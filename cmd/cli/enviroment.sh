@@ -1,0 +1,5 @@
+export TZ="UTC"
+export APP_ENV="development"
+export DATABASE_URL="host=localhost user=admin password=admin dbname=gorm port=5432 sslmode=disable TimeZone=UTC"
+export PORT=":8080"
+export CORS_ORIGIN="http://localhost:3000"
