@@ -1,0 +1,45 @@
+version: '3.8'
+name: 'bookstore'
+
+services:
+  app:
+    container_name: bookstore-app
+    build: .
+    cpus: 1
+    mem_reservation: 256m # soft limit
+    mem_limit: 512m       # hard limit
+    environment:
+      APP_ENV: development
+      DATABASE_URL: "host=postgres user=admin password=admin dbname=bookstore port=5432 sslmode=disable TimeZone=UTC"
+      PORT: ":8080"
+      CORS_ORIGIN: "http://localhost:3000"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - docker_stack
+  postgres:
+    image: postgres:16.10
+    cpus: 0.5
+    mem_reservation: 256m
+    mem_limit: 512m
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: bookstore
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d bookstore"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    volumes:
+      - ~/Desktop/Docker/BookStore:/var/lib/postgresql/data
+    networks:
+      - docker_stack
+networks:
+  docker_stack:
+    driver: bridge
